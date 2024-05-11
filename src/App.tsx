@@ -9,7 +9,7 @@ const LIMIT = 10;
 
 
 function App() {
-  const [selectedOption, setSelectedOption] = useState<SelectOptionProps>({ label: '', value: '' })
+  const [selectedOption, setSelectedOptions] = useState<SelectOptionProps[]>([])
   const [productOptions, setProductOptions] = useState<SelectOptionProps[]>([])
   const [isFetchingProducts, setIsFetchingProducts] = useState(true)
   const [totalItems, setTotalItems] = useState(0)
@@ -17,8 +17,16 @@ function App() {
   const [debouncedSearchInput, setDebouncedSearchInput] = useState('')
 
   const handleSelect = (option: SelectOptionProps) => {
-    setSearchInput(option?.label)
-    setSelectedOption(option)
+    console.log('checked={isSelected}', option)
+    // setSearchInput(option?.label)
+    setSelectedOptions(prevOptions => {
+        const isOptionAlreadySelected = prevOptions.some(prevOption => prevOption.value === option.value)
+        if (isOptionAlreadySelected) {
+            return prevOptions.filter(prevOption => prevOption.value !== option.value)
+        } else {
+            return [...prevOptions, option]
+        }
+    })
   }
 
   const transformProductToSelectOptions = (products: { title: string; id: string }[]) => {
@@ -87,11 +95,12 @@ function App() {
     fetchAndSetProducts()
   }, [page, debouncedSearchInput])
 
+  console.log('selectedOption', selectedOption)
+
 
   return (
       <div className='p-20'>
         <div className='block w-52'>
-          <span className='block mb-2 text-sm'>Select product</span>
           <Select
               options={productOptions}
               selected={selectedOption}

@@ -4,6 +4,27 @@ import GreaterThan from './GreaterThan';
 import {SelectOptionProps, SelectProps} from "./Types/SelectTypes";
 import useListenForOutsideClicks from "./Hooks/useListenForOutsideClicks";
 import Loader from "./Loader";
+import {
+    Box,
+    FormControl,
+    IconButton,
+    Input,
+    MenuItem,
+    Popper,
+    styled,
+    Typography,
+    Checkbox,
+    ListItemIcon
+} from "@mui/material";
+import {ExpandMore} from "@mui/icons-material";
+
+const CustomFormControl = styled(FormControl)({
+    width: '100%',
+    backgroundColor: 'transparent',
+    '& .MuiInput-underline:before': {
+        borderBottom: '1px solid rgba(0, 0, 0, 0.42)',
+    },
+});
 
 const Select: FC<SelectProps> = ({
                                      options,
@@ -11,38 +32,26 @@ const Select: FC<SelectProps> = ({
                                      lastOptionRef,
                                      isSearchable,
                                      searchInput,
-                                     selected = { label: '', value: '' },
+                                     selected = [],
                                      placeholder = 'Select',
                                      handleSelect,
                                      setSearchInput,
                                  }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-    const openDropdown = () => {
-        setIsDropdownOpen(true)
+
+    const openDropdown = (event: React.MouseEvent<HTMLElement>) => {
+        setIsDropdownOpen(true);
+        setAnchorEl(anchorEl ? null : event.currentTarget);
+
     }
 
     const closeDropdown = () => {
-        setIsDropdownOpen(false)
+        setIsDropdownOpen(false);
+        setAnchorEl(null)
     }
 
-    const labelClassName = () => {
-        return `block max-w-full capitalize truncate ${selected?.label ? 'text-text-tertiary' : 'text-neutral/400'}`
-    }
-
-    const optionClassName = (option: SelectOptionProps, index: number, isSelected: boolean) => {
-        isSelected ||= selected?.value === option.value
-
-        return `active:bg-background-selected-option relative cursor-default select-none py-2 px-4 ${
-            options.length - 1 === index ? 'rounded-b-md' : ''
-        } ${isSelected ? 'bg-secondary/blue/50' : ''} hover:bg-secondary/blue/50 mb-1 last-of-type:mb-[0] block text-left w-full`
-    }
-
-    const containerClassName = () => `
-    ${
-        isDropdownOpen ? '!border-grey/900' : ''
-    } px-4 py-2 flex justify-between items-center rounded w-full font-normal border border-solid border-neutral/200 bg-transparent leading-[20px] text-xs text-grey/900
-    `
 
     const { elementRef } = useListenForOutsideClicks(closeDropdown)
 
@@ -59,70 +68,72 @@ const Select: FC<SelectProps> = ({
     const renderOptions = (options: SelectOptionProps[]) => {
         return options?.length > 0
             ? options?.map((option, index) => {
-                const isSelected = selected?.value === option.value
+                const isSelected = selected.map(i => i.value).includes(option.value);
+
 
                 return (
-                    <button
-                        type='button'
+                    <MenuItem
                         key={String(option.value) + String(index)}
-                        className={optionClassName(option, index, selected?.value === option.value)}
+                        selected={isSelected}
                         onClick={() => {
-                            handleSelect(option)
-                            closeDropdown()
+                            handleSelect(option);
                         }}
-                        ref={options?.length - 1 === index ? lastOptionRef : null}
+                        sx={{ fontWeight: isSelected ? 'bold' : 'normal' }}
+                        ref={options.length - 1 === index ? lastOptionRef : null}
                     >
-              <span
-                  title={option.label}
-                  className={`${
-                      isSelected ? 'font-semibold ' : 'font-normal'
-                  } block truncate text-text-tertiary text-[0.625rem] cursor-pointer leading-[0.8rem] text-shades/black font-normal`}
-              >
-                {option.label}
-              </span>
-                    </button>
+                        <ListItemIcon>
+                            <Checkbox size='small' checked={isSelected} />
+                        </ListItemIcon>
+                        {option.label}
+                    </MenuItem>
                 )
             })
             : renderNoOptions()
     }
 
     return (
-        <div className='relative grow'>
-            <button onClick={openDropdown} className={containerClassName()}>
+        <Box sx={{ position: 'relative', width: '300px' }}>
+            <CustomFormControl variant="standard">
                 {isSearchable ? (
-                    <input
-                        type='text'
-                        className='block text-text-tertiary w-full outline-none'
-                        onChange={(ev) => {
-                            setSearchInput?.(ev.target.value)
-                        }}
+                    <Input
+                        fullWidth
+                        disableUnderline
                         placeholder={placeholder}
                         value={searchInput}
+                        onClick={openDropdown}
+                        onChange={(ev) => setSearchInput?.(ev.target.value)}
+                        endAdornment={
+                            <IconButton onClick={openDropdown}>
+                                <ExpandMore />
+                            </IconButton>
+                        }
                     />
                 ) : (
-                    <span title={selected?.label} className={labelClassName()}>
-            {selected?.label || placeholder}
-          </span>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography sx={{ flexGrow: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }} title={selected.map(i => i.label).join(', ')}>
+                            {selected.map(i => i.label).join(', ') || placeholder}
+                        </Typography>
+                        <IconButton onClick={openDropdown}>
+                            <ExpandMore />
+                        </IconButton>
+                    </Box>
                 )}
-                <span className='pointer-events-none ml-3 flex items-center'>
-          <GreaterThan className='rotate-90 text-[#96989A]' />
-        </span>
-            </button>
+            </CustomFormControl>
 
-            {isDropdownOpen && (
-                <div
-                    className={
-                        'absolute z-[500] w-full overflow-auto rounded-b-md bg-shades/white py-[14px] text-base ring-opacity-5 focus:outline-none mt-1 max-h-40 '
-                    }
-                    style={{ boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.08)' }}
-                    ref={elementRef}
-                >
+            <Popper open={isDropdownOpen} anchorEl={anchorEl} ref={elementRef} placement='bottom-start'>
+                <Box sx={{ width: '100%',
+                    maxHeight: 160,
+                    overflow: 'auto',
+                    mt: 1,
+                    bgcolor: 'background.paper',
+                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.08)',
+                    zIndex: 1}}>
                     {renderOptions(options)}
 
                     {isFetchingOptions && options?.length > 0 && <Loader />}
-                </div>
-            )}
-        </div>
+                </Box>
+            </Popper>
+        </Box>
     )
 }
 

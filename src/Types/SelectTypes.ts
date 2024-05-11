@@ -5,7 +5,7 @@ export type SelectOptionProps = {
 
 export type SelectProps = {
     options: SelectOptionProps[] // an array of the options.
-    selected?: SelectOptionProps // the selected option.
+    selected?: SelectOptionProps[] // the selected options.
     handleSelect: (option: SelectOptionProps) => void // function that is called when an option is selected.
     placeholder?: string
     isFetchingOptions?: boolean
