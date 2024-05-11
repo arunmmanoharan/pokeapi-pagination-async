@@ -21,16 +21,13 @@ function App() {
     setSelectedOption(option)
   }
 
-  const transformProductToSelectOptions = (products: { name: string; url: string }[]) => {
+  const transformProductToSelectOptions = (products: { title: string; id: string }[]) => {
     if (!products) return []
 
     return products?.map((product) => {
-      let url = product.url;
-      let parts = url.split('/');  // Split the URL into parts
-      let id = parts[parts.length - 2];
       return {
-        label: `${product?.name}`,
-        value: id.toString(),
+        label: `${product?.title}`,
+        value:product.id.toString(),
       }
     })
   }
@@ -50,9 +47,9 @@ function App() {
 
   const getApiUrl = () => {
     if (debouncedSearchInput) {
-      return `https://dummyjson.com/products/search?q=${debouncedSearchInput}&limit=${LIMIT}&skip=${getSkipValue()}`
+      return `https://yts.mx/api/v2/list_movies.json?query_term=${debouncedSearchInput}&limit=${LIMIT}&page=${page}`
     } else {
-      return `https://pokeapi.co/api/v2/pokemon?limit=${LIMIT}&offset=${getSkipValue()}`
+      return `https://yts.mx/api/v2/list_movies.json?limit=${LIMIT}&page=${page}`
     }
   }
 
@@ -76,8 +73,8 @@ function App() {
 
       if (page === 1) setProductOptions([])
 
-      setProductOptions((prev) => [...prev, ...transformProductToSelectOptions(data?.results)])
-      setTotalItems(data?.count)
+      setProductOptions((prev) => [...prev, ...transformProductToSelectOptions(data?.data.movies)])
+      setTotalItems(data?.data.movie_count)
     } catch (error) {
       alert('Something went wrong')
       console.log({ error })
