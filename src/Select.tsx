@@ -14,9 +14,9 @@ import {
     styled,
     Typography,
     Checkbox,
-    ListItemIcon
+    ListItemIcon, ListItemText, OutlinedInput, Chip, Grid
 } from "@mui/material";
-import {ExpandMore} from "@mui/icons-material";
+import {Add, ExpandMore} from "@mui/icons-material";
 
 const CustomFormControl = styled(FormControl)({
     width: '100%',
@@ -59,9 +59,15 @@ const Select: FC<SelectProps> = ({
         if (isFetchingOptions) return <Loader />
 
         return (
-            <div className='relative cursor-default select-none py-2 pl-3 pr-9'>
-                <span className='font-normal block truncate text-sm text-text-tertiary'>No options here</span>
-            </div>
+            <MenuItem onClick={() => {
+                handleSelect({
+                    label: searchInput as string,
+                    value: searchInput as string,
+                });
+                if (setSearchInput) {
+                    setSearchInput('');
+                }
+            }}><ListItemIcon><Add /></ListItemIcon><ListItemText>{`Add ${searchInput}`}</ListItemText></MenuItem>
         )
     }
 
@@ -91,22 +97,36 @@ const Select: FC<SelectProps> = ({
             : renderNoOptions()
     }
 
+    console.log('isSearchable',isSearchable)
+
     return (
         <Box sx={{ position: 'relative', width: '300px' }}>
             <CustomFormControl variant="standard">
                 {isSearchable ? (
-                    <Input
+                    <OutlinedInput
+                        size='small'
                         fullWidth
-                        disableUnderline
                         placeholder={placeholder}
                         value={searchInput}
                         onClick={openDropdown}
+                        multiline
                         onChange={(ev) => setSearchInput?.(ev.target.value)}
                         endAdornment={
                             <IconButton onClick={openDropdown}>
                                 <ExpandMore />
                             </IconButton>
                         }
+                        startAdornment={(() => {
+                            if(selected.length > 0) {return (
+                                <Grid container sx={{width: '100%'}} spacing={0.5}>{selected.map(i => {
+                                return (
+                                    <Grid item>
+                                        <Chip sx={{mr: 1}} key={i.label} label={i.label} onDelete={() => handleSelect(i)} /></Grid>
+                                )
+                                        })}</Grid>
+                            )}
+                            return null
+                        })()}
                     />
                 ) : (
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
