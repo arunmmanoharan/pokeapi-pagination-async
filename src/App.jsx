@@ -3,6 +3,8 @@ import CreatableSelect from 'react-select/creatable';
 import {withAsyncPaginate} from 'react-select-async-paginate';
 import {  components } from "react-select";
 import {Checkbox, emphasize} from "@mui/material";
+import {ArrowDropDown} from "@mui/icons-material";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const CreatableSelectWrapper = withAsyncPaginate(CreatableSelect);
 
@@ -54,10 +56,17 @@ const Option = (props) => (
                 key={props.value}
                 checked={props.isSelected}
                 onChange={() => {}}
+                size='small'
             />
-        <label style={{ marginLeft: "5px" }}>{props.label}</label>
+        <label>{props.label}</label>
     </components.Option>
 );
+
+const IndicatorSeparator = ({
+                                innerProps,
+                            }) => {
+    return null;
+};
 
 function App() {
 
@@ -72,8 +81,15 @@ function App() {
                 value={value}
                 isMulti
                 removeSelected={false}
+                placeholder='Select Movies'
                 components={{
                     Option: Option,
+                    IndicatorSeparator: IndicatorSeparator,
+                    LoadingIndicator: (props) => {
+                        console.log('props', props)
+                        return <CircularProgress size={16} color='primary'/>
+                    },
+                    DropdownIndicator: (props) => <ArrowDropDown />,
                 }}
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
