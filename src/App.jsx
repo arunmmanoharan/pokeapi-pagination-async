@@ -11,7 +11,7 @@ const customStyles = {
         ...provided,
         backgroundColor: state.isSelected ? 'rgba(25, 118, 210, 0.12)' : provided.backgroundColor, // Change this to your desired color
         color: state.isSelected ? 'rgba(0, 0, 0, 0.87)' : provided.color, // Ensure text is readable
-        padding: 10,
+        padding: 0,
         ':hover': {
             backgroundColor: emphasize('rgba(0, 0, 0, 0.08)', 0.3), // Darker on hover
             color: 'rgba(0, 0, 0, 0.87)',
@@ -71,7 +71,6 @@ function App() {
             <CreatableSelectWrapper
                 value={value}
                 isMulti
-                menuIsOpen
                 removeSelected={false}
                 components={{
                     Option: Option,
@@ -79,8 +78,8 @@ function App() {
                 closeMenuOnSelect={false}
                 hideSelectedOptions={false}
                 styles={customStyles}
-                loadOptions={async (search, loadedOptions, { page }) => {
-                    const response = await fetch(`https://yts.mx/api/v2/list_movies.json?query_term=${search}&page=${page}`);
+                loadOptions={async (search, loadedOptions, { page, limit }) => {
+                    const response = await fetch(`https://yts.mx/api/v2/list_movies.json?query_term=${search}&page=${page}&limit=${limit}`);
                     const responseJSON = await response.json();
                     return {
                         options: responseJSON.data.movie_count === 0  ? [] : responseJSON.data.movies.map(i => {
@@ -92,12 +91,14 @@ function App() {
                         hasMore: responseJSON.data.movie_count > (responseJSON.data.page_number * responseJSON.data.limit),
                         additional: {
                             page: page + 1,
+                            limit: limit,
                         },
                     };
                 }}
                 onChange={setValue}
                 additional={{
                     page: 1,
+                    limit: 10
                 }}
             />
 
